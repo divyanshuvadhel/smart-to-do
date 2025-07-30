@@ -5,6 +5,8 @@ node_modules/
 public/css/tailwind.css
 public/css/tailwind.min.css
 
+l.html
+
 # Cache or temp files
 *.log
 *.tmp
