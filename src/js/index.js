@@ -586,34 +586,129 @@ function tasksCountAndRender() {
 
 // function for render all tasks sorted by priority and due date
 function renderAllTasksSorted() {
+  // Reset filters and search when rendering all tasks
+  currentSearchTerm = '';
+  currentFilters = { status: 'all', category: 'all', priority: 'all' };
+  
+  // Reset filter inputs
+  if (elementsOfFilter.searchInput) elementsOfFilter.searchInput.value = '';
+  if (elementsOfFilter.filterStatus) elementsOfFilter.filterStatus.value = 'all';
+  if (elementsOfFilter.filterCategory) elementsOfFilter.filterCategory.value = 'all';
+  if (elementsOfFilter.filterPriority) elementsOfFilter.filterPriority.value = 'all';
+  
+  renderFilteredTasks();
+}
+
+// functions for search task and sort tarsk 
+
+const filterContainer = document.body.querySelector("#filter-container");
+const elementsOfFilter = {
+  searchInput: filterContainer.querySelector("#searchTask"),
+  filterStatus: filterContainer.querySelector("#filterStatus"),// all ,completed ,pending 
+  filterCategory: filterContainer.querySelector("#category"),// personal,work ,shoping 
+  filterPriority: filterContainer.querySelector("#priorities"),// low high midium
+};
+
+// Global variables for filtering
+let currentSearchTerm = '';
+let currentFilters = {
+  status: 'all',
+  category: 'all',
+  priority: 'all'
+};
+
+// function for handle search with real-time highlighting
+function handleSearch() {
+  const searchTerm = elementsOfFilter.searchInput.value.toLowerCase().trim();
+  currentSearchTerm = searchTerm;
+  renderFilteredTasks();
+}
+
+// function for handle filter
+function handleFilter() {
+  currentFilters = {
+    status: elementsOfFilter.filterStatus.value,
+    category: elementsOfFilter.filterCategory.value,
+    priority: elementsOfFilter.filterPriority.value
+  };
+  renderFilteredTasks();
+}
+
+// Function to highlight search terms in text
+function highlightText(text, searchTerm) {
+  if (!searchTerm || !text) return text;
+  
+  const regex = new RegExp(`(${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+  return text.replace(regex, '<mark class="bg-yellow-200 dark:bg-yellow-600 px-1 rounded">$1</mark>');
+}
+
+// Function to filter tasks based on current filters and search
+function getFilteredTasks() {
+  const allTasks = [...tasksArray, ...quickTasksArray];
+  
+  return allTasks.filter(task => {
+    // Search filter
+    if (currentSearchTerm) {
+      const searchableText = [
+        task.task,
+        task.description || task.decreption || '',
+        task.category || task.catagory || 'personal',
+        task.priority
+      ].join(' ').toLowerCase();
+      
+      if (!searchableText.includes(currentSearchTerm)) {
+        return false;
+      }
+    }
+    
+    // Status filter
+    if (currentFilters.status !== 'all') {
+      if (currentFilters.status === 'completed' && !task.isDone) return false;
+      if (currentFilters.status === 'pending' && task.isDone) return false;
+    }
+    
+    // Category filter
+    if (currentFilters.category !== 'all') {
+      const taskCategory = task.category || task.catagory || 'personal';
+      if (taskCategory !== currentFilters.category) return false;
+    }
+    
+    // Priority filter
+    if (currentFilters.priority !== 'all') {
+      if (task.priority !== currentFilters.priority) return false;
+    }
+    
+    return true;
+  });
+}
+
+// Function to render filtered and sorted tasks
+function renderFilteredTasks() {
   // Clear existing tasks
   const existingTasks = todoListContainer.querySelectorAll('.task-item');
   existingTasks.forEach(task => task.remove());
   
-  const allTasks = [...tasksArray, ...quickTasksArray];
+  const filteredTasks = getFilteredTasks();
   
-  if (allTasks.length === 0) {
+  if (filteredTasks.length === 0) {
     todoListContainer.firstElementChild.classList.remove("hidden");
     return;
   }
   
   todoListContainer.firstElementChild.classList.add("hidden");
   
-  // Sort tasks: incomplete first, then by priority (high->medium->low), then by due date
+  // Sort filtered tasks
   const priorityOrder = { high: 3, medium: 2, low: 1 };
   
-  const sortedTasks = allTasks.sort((a, b) => {
-    // Completed tasks go to bottom
+  const sortedTasks = filteredTasks.sort((a, b) => {
     if (a.isDone !== b.isDone) {
       return a.isDone ? 1 : -1;
     }
     
-    // Sort by priority (high to low)
     if (a.priority !== b.priority) {
       return priorityOrder[b.priority] - priorityOrder[a.priority];
     }
     
-    // Sort by due date (earliest first)
     const dateA = a.dueDate === 'today' ? new Date().toISOString().split('T')[0] : a.dueDate;
     const dateB = b.dueDate === 'today' ? new Date().toISOString().split('T')[0] : b.dueDate;
     
@@ -624,9 +719,58 @@ function renderAllTasksSorted() {
     renderTask(taskObject);
   });
   
+  // Add highlighting after rendering
+  if (currentSearchTerm) {
+    addHighlighting();
+  }
+  
   // Reinitialize Lucide icons
   if (typeof lucide !== 'undefined') {
     lucide.createIcons();
+  }
+}
+
+// Function to add highlihting to rendered tsks
+function addHighlighting() {
+  const taskElements = todoListContainer.querySelectorAll('.task-item');
+  
+  taskElements.forEach(taskElement => {
+    const title = taskElement.querySelector('h3');
+    const description = taskElement.querySelector('p');
+    const categorySpan = taskElement.querySelector('span:nth-of-type(1)');
+    const prioritySpan = taskElement.querySelector('span:nth-of-type(2)');
+    
+    if (title) title.innerHTML = highlightText(title.textContent, currentSearchTerm);
+    if (description) description.innerHTML = highlightText(description.textContent, currentSearchTerm);
+    if (categorySpan) {
+      const icon = categorySpan.querySelector('i');
+      const text = categorySpan.textContent.trim();
+      categorySpan.innerHTML = icon.outerHTML + ' ' + highlightText(text, currentSearchTerm);
+    }
+    if (prioritySpan) prioritySpan.innerHTML = highlightText(prioritySpan.textContent, currentSearchTerm);
+  });
+}
+
+
+
+// Add event listeners for search and filter
+function initializeEventListeners() {
+  // Real-time search
+  if (elementsOfFilter.searchInput) {
+    elementsOfFilter.searchInput.addEventListener('input', handleSearch);
+  }
+  
+  // Filter event listeners
+  if (elementsOfFilter.filterStatus) {
+    elementsOfFilter.filterStatus.addEventListener('change', handleFilter);
+  }
+  
+  if (elementsOfFilter.filterCategory) {
+    elementsOfFilter.filterCategory.addEventListener('change', handleFilter);
+  }
+  
+  if (elementsOfFilter.filterPriority) {
+    elementsOfFilter.filterPriority.addEventListener('change', handleFilter);
   }
 }
 
@@ -634,3 +778,4 @@ function renderAllTasksSorted() {
 renderAllTasksSorted();
 rednderStates();
 handleQuickAddTaskSection();
+initializeEventListeners();
