@@ -184,6 +184,25 @@ let tasksArray = [
 // Separate array for quick tasks (no description, medium priority, today due)
 let quickTasksArray = [];
 
+// localStorage functions
+function saveToLocalStorage() {
+  localStorage.setItem('tasksArray', JSON.stringify(tasksArray));
+  localStorage.setItem('quickTasksArray', JSON.stringify(quickTasksArray));
+}
+
+function loadFromLocalStorage() {
+  const savedTasks = localStorage.getItem('tasksArray');
+  const savedQuickTasks = localStorage.getItem('quickTasksArray');
+  
+  if (savedTasks) {
+    tasksArray = JSON.parse(savedTasks);
+  }
+  
+  if (savedQuickTasks) {
+    quickTasksArray = JSON.parse(savedQuickTasks);
+  }
+}
+
 // Cache DOM elements globally for performance
 const statsElements = {
   totalTasks: document.querySelector("#totalTasks"),
@@ -255,6 +274,7 @@ function handleQuickAddTaskSection() {
       };
       quickTasksArray.push(quickTaskObject);      
       quickAddTaskInput.value = "";
+      saveToLocalStorage();
       renderAllTasksSorted();
       rednderStates();
     }
@@ -309,7 +329,7 @@ function handleOpenModalBox() {
 // function for close the modal
 function closeModal() {
   modalElements.taskModalBox.classList.add("hidden");
-  modalElements.taskModalBox.removeEventListener("click", handleBackgroundClick);
+  // modalElements.taskModalBox.removeEventListener("click", handleBackgroundClick);
 }
 
 // triggers for opining addtask modal box
@@ -343,7 +363,6 @@ addTaskBtnOfList.addEventListener("click", () => {
 
 
 // function for handle task add form modal box goes in task array;
-
 
 function handleAddTaskFromModalBox() {
   const taskTitle = modalElements.taskTitle.value.trim();
@@ -400,10 +419,22 @@ function handleAddTaskFromModalBox() {
   modalElements.taskPriority.value = "medium";
   modalElements.taskCategory.value = "personal";
 
+  saveToLocalStorage();
   renderAllTasksSorted();
   rednderStates();
   closeModal();
 }
+
+// function for clear all task 
+
+  const clearAllTasksBtn=document.querySelector('#clearAllTasks');
+  clearAllTasksBtn.addEventListener('click',()=>{
+    tasksArray=[];
+    quickTasksArray=[];
+    saveToLocalStorage();
+    renderAllTasksSorted();
+    rednderStates();
+  })
 
 
 // function for render the task with proper priority and completion states
@@ -512,6 +543,7 @@ function handleTaskDone(taskId) {
       }
     }
     
+    saveToLocalStorage();
     renderAllTasksSorted();
     rednderStates();
   }
@@ -541,11 +573,13 @@ function handleTaskDelete(taskId) {
         
         setTimeout(() => {
           targetArray.splice(taskIndex, 1);
+          saveToLocalStorage();
           renderAllTasksSorted();
           rednderStates();
         }, 300);
       } else {
         targetArray.splice(taskIndex, 1);
+        saveToLocalStorage();
         renderAllTasksSorted();
         rednderStates();
       }
@@ -573,9 +607,6 @@ function handleTaskEdit(taskId) {
     handleOpenModalBox();
   }
 }
-
-
-
 
 // function for tasks count
 
@@ -775,7 +806,40 @@ function initializeEventListeners() {
 }
 
 // Initialize the app
+loadFromLocalStorage();
 renderAllTasksSorted();
 rednderStates();
 handleQuickAddTaskSection();
 initializeEventListeners();
+initializeMobileFilters();
+
+// Toggle filters function for mobile UX
+function toggleFilters() {
+  const filterContent = document.getElementById('filter-content');
+  const toggleIcon = document.getElementById('filter-toggle');
+  
+  if (window.innerWidth < 1024) { // Only on mobile/tablet
+    filterContent.classList.toggle('hidden');
+    toggleIcon.classList.toggle('rotate-180');
+  }
+}
+
+// Auto-hide filters on mobile by default
+function initializeMobileFilters() {
+  const filterContent = document.getElementById('filter-content');
+  
+  if (window.innerWidth < 1024) {
+    filterContent.classList.add('hidden');
+  }
+}
+
+// Handle window resize
+window.addEventListener('resize', () => {
+  const filterContent = document.getElementById('filter-content');
+  
+  if (window.innerWidth >= 1024) {
+    filterContent.classList.remove('hidden');
+  } else {
+    filterContent.classList.add('hidden');
+  }
+});

@@ -132,13 +132,13 @@
 
             <!-- **************************tasks section ***********************	 -->
 
-            <div id="task-section" class="flex self-start gap-5 w-full py-5  my-10">
+            <div id="task-section" class="flex flex-col lg:flex-row self-start gap-5 w-full py-5 my-10">
 
                 <!---------- Left side ------------>
 
-                <div class="left h-full p-5">
+                <div class="left h-full p-5 w-full lg:w-auto lg:min-w-[320px]">
                     <!-- -------------quick add------------- -->
-                    <div class="rounded-xl w-sm p-5 border border-slate-600 dark:text-white" id="addtask-container">
+                    <div class="rounded-xl w-full p-5 border border-slate-600 dark:text-white" id="addtask-container">
                         <div class="flex gap-3 ">
                             <div
                                 class="w-8 h-8 bg-gradient-to-r from-neutral-500 via-neutral-400 to-neutral-700 rounded-lg  flex items-center justify-center">
@@ -160,50 +160,55 @@
                     <!-- ------------------filters------------------->
                     <div
                         id="filter-container" 
-                        class="rounded-xl w-sm p-5 border border-stone-600 mt-10">
-                        <div class="flex gap-3">
-                            <div
-                                class="w-8 h-8 bg-gradient-to-r from-neutral-500 via-neutral-400 to-neutral-500 rounded-lg flex items-center justify-center">
-                                <i data-lucide="filter" class="w-4 h-4 dark:text-white "></i>
+                        class="rounded-xl w-full p-5 border border-stone-600 mt-10">
+                        <div class="flex gap-3 justify-between items-center cursor-pointer" onclick="toggleFilters()">
+                            <div class="flex gap-3 items-center">
+                                <div
+                                    class="w-8 h-8 bg-gradient-to-r from-neutral-500 via-neutral-400 to-neutral-500 rounded-lg flex items-center justify-center">
+                                    <i data-lucide="filter" class="w-4 h-4 dark:text-white "></i>
+                                </div>
+                                <p class="text-xl font-bold dark:text-slate-200">Filters</p>
                             </div>
-                            <p class="text-xl font-bold dark:text-slate-200">filters</p>
+                            <i data-lucide="chevron-down" id="filter-toggle" class="w-5 h-5 dark:text-white transition-transform duration-200 lg:hidden"></i>
                         </div>
-                        <!-- ----------- search ----------------- -->
-                        <div class="w-full border border-slate-600 rounded-xl px-2 mt-5 flex items-center ">
-                            <i data-lucide="search" class="h-4 text-white"></i>
-                            <input type="text" id="searchTask" class="w-full p-2 rounded-xl outline-none text-white"
-                                placeholder="Search Tasks...">
-                        </div>
+                        <div id="filter-content" class="lg:block">
+                            <!-- ----------- search ----------------- -->
+                            <div class="w-full border border-slate-600 rounded-xl px-3 mt-5 flex items-center bg-gray-50 dark:bg-gray-900 focus-within:ring-2 focus-within:ring-blue-500 transition-all">
+                                <i data-lucide="search" class="h-4 w-4 text-gray-400 dark:text-gray-500"></i>
+                                <input type="text" id="searchTask" class="w-full p-3 bg-transparent outline-none text-gray-900 dark:text-white placeholder-gray-500"
+                                    placeholder="Search tasks...">
+                            </div>
 
-                        <!-- -------------- dropdown------------- -->
-                        <select id="filterStatus"
-                            class=" mt-5 w-full px-4 py-2 border border-gray-200 dark:bg-black dark:border-slate-600 rounded-lg  text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white focus:border-transparent transition-all duration-200">
-                            <option value="all">All Tasks</option>
-                            <option value="pending">Pending</option>
-                            <option value="completed">Completed</option>
-                            <option value="overdue">Overdue</option>
-                        </select>
-
-                        <!-- ---------------catogories------------->
-                        <div class="flex gap-3 w-full">
-                            <select name="" id="category"
-                                class=" mt-5 w-full px-4 py-2 border border-gray-200 dark:bg-black dark:border-slate-600 rounded-lg  text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white focus:border-transparent transition-all duration-200">
-                                <option value="all">All catorgories</option>
-                                <option value="personal">personal</option>
-                                <option value="work">work</option>
-                                <option value="shopping">shopping</option>
-                                <option value="helth">helth</option>
-                                <option value="other">other</option>
+                            <!-- -------------- dropdown------------- -->
+                            <select id="filterStatus"
+                                class="mt-4 w-full px-4 py-3 border border-gray-200 dark:bg-black dark:border-slate-600 rounded-lg text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 cursor-pointer">
+                                <option value="all">📋 All Tasks</option>
+                                <option value="pending">⏳ Pending</option>
+                                <option value="completed">✅ Completed</option>
+                                <option value="overdue">🔴 Overdue</option>
                             </select>
 
-                            <!----- priority------>
+                            <!-- ---------------categories------------->
+                            <div class="flex flex-col sm:flex-row gap-3 w-full">
+                                <select name="" id="category"
+                                    class="mt-4 w-full px-4 py-3 border border-gray-200 dark:bg-black dark:border-slate-600 rounded-lg text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 cursor-pointer">
+                                    <option value="all">🏷️ All Categories</option>
+                                    <option value="personal">👤 Personal</option>
+                                    <option value="work">💼 Work</option>
+                                    <option value="shopping">🛒 Shopping</option>
+                                    <option value="health">🏥 Health</option>
+                                    <option value="other">📝 Other</option>
+                                </select>
 
-                            <select name="" id="priorities"
-                                class=" mt-5 w-full px-4 py-2 border border-gray-200 dark:bg-black dark:border-slate-600 rounded-lg  text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white focus:border-transparent transition-all duration-200">
-                                <option value="all">All priority</option>
-                                <option value="high">High</option>
-                                <option value="low">Low</option>
-                            </select>
+                                <!----- priority------>
+                                <select name="" id="priorities"
+                                    class="mt-4 w-full px-4 py-3 border border-gray-200 dark:bg-black dark:border-slate-600 rounded-lg text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 cursor-pointer">
+                                    <option value="all">⚡ All Priority</option>
+                                    <option value="high">🔴 High</option>
+                                    <option value="medium">🟡 Medium</option>
+                                    <option value="low">🟢 Low</option>
+                                </select>
+                            </div>
                         </div>
 
                     </div>
@@ -211,11 +216,11 @@
 
                 <!----------------- right sid ---------------->
 
-                <div class="right w-[60%] h-[500px] overflow-hidden py-4 border border-slate-600 rounded-2xl">
+                <div class="right w-full lg:w-[60%] h-[500px] lg:h-[600px] overflow-hidden py-4 border border-slate-600 rounded-2xl bg-white dark:bg-gray-900">
 
                     <!------------------heading---------------->
 
-                    <div class="w-full flex justify-between px-4 items-center  pb-5 dark:border-b-slate-600 border-b">
+                    <div class="w-full flex flex-col sm:flex-row justify-between px-4 items-start sm:items-center gap-3 pb-4 dark:border-b-slate-600 border-b">
                         <div class="flex gap-3 items-center">
                             <div
                                 class="p-2 bg-gradient-to-r from-neutral-500 via-neutral-400 to-neutral-600 rounded-md">
@@ -230,15 +235,17 @@
 
                         <!-- ---------------- clear copleted btn----------------->
                         <button
-                            class="flex items-center gap-2 dark:text-slate-600 hover:text-md text-sm transition ease-in hover:text-white ">
+                            id="clearAllTasks"
+                            class="flex items-center gap-2 px-3 py-2 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 text-sm transition-all duration-200 whitespace-nowrap">
                             <i data-lucide="trash-2" class="w-4 h-4"></i>
-                            <p>Clear Completed</p>
+                            <span class="hidden sm:inline">Clear Completed</span>
+                            <span class="sm:hidden">Clear</span>
                         </button>
                     </div>
 
                     <!-- --------------- list tasks ---------------- -->
 
-                    <div id="todoList-container" class="w-full h-[90%]   overflow-y-scroll p-4">
+                    <div id="todoList-container" class="w-full h-[90%] overflow-y-auto p-4 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600">
 
                         <!-- ------------------if task not found ------------------- -->
                         <div class="flex flex-col justify-center w-full h-full   items-center ">
