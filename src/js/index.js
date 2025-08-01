@@ -32,7 +32,7 @@ let tasksArray = [
     isDone: true,
     decreption: "At 10:00 AM",
     priority: "high",
-    dueDate: "2025-08-01",
+    dueDate: "2023-08-01",
     catagory: "health",
   },
   {
@@ -181,72 +181,44 @@ let tasksArray = [
   },
 ];
 
-// quickAddModal box
-const addTaskBtn = document.querySelector("#addTask");
-const quickAddModalBox = document.querySelector("#quickAddModal");
-const modalContent = quickAddModalBox.querySelector("#quickModal");
-const closeQuickModal = modalContent.querySelector("#closeQuickModal");
-const cancelQuickBtn = modalContent.querySelector("#cancelQuick");
+// Separate array for quick tasks (no description, medium priority, today due)
+let quickTasksArray = [];
 
-// btn for add task
-const addTaskModalBtn = modalContent.querySelector("#addTaskModalBtn");
-// function for handle the opening of the modalbox for adding tasks
+// Cache DOM elements globally for performance
+const statsElements = {
+  totalTasks: document.querySelector("#totalTasks"),
+  completed: document.querySelector("#completedTasks"),
+  pending: document.querySelector("#pending"),
+  overdue: document.querySelector("#overdue"),
+  yourTaskCount: document.querySelector("#yourTaskCount")
+};
 
-function handleOpenModalBox() {
-  // open the modal box
-  quickAddModalBox.classList.remove("hidden");
-
-  // attche the all event of modal box
-
-  // close 	quick modal btn
-  quickAddModalBox.addEventListener("click", handleBackgroundClick);
-  closeQuickModal.addEventListener("click", closeModal);
-  cancelQuickBtn.addEventListener("click", closeModal);
-
-  // also hendle data form the modal box
-
-  addTaskModalBtn.addEventListener("click", (e) => {
-    handleAddTaskFromModalBox();
-  });
+function rednderStates() {
+  const allTasks = [...tasksArray, ...quickTasksArray];
+  const completedCount = completedTasks(allTasks);
+  const overdueCount = overdueTasks(allTasks);
+  statsElements.completed.innerText = completedCount;
+  statsElements.pending.innerText = allTasks.length - completedCount;
+  statsElements.totalTasks.innerText = allTasks.length;
+  statsElements.overdue.innerText = overdueCount;
+  statsElements.yourTaskCount.innerText = allTasks.length;
 }
 
-// function for close the modal
-function closeModal() {
-  quickAddModalBox.classList.add("hidden");
-  quickAddModalBox.removeEventListener("click", handleBackgroundClick);
+function completedTasks(tasks = [...tasksArray, ...quickTasksArray]) {
+  return tasks.filter(task => task.isDone).length;
 }
 
-// function back groundclick handler
-
-function handleBackgroundClick(e) {
-  if (!modalContent.contains(e.target)) {
-    closeModal();
-  }
+function overdueTasks(tasks = [...tasksArray, ...quickTasksArray]) {
+  const today = new Date().toISOString().split('T')[0];
+  return tasks.filter(task => 
+    !task.isDone && 
+    task.dueDate !== 'today' && 
+    task.dueDate < today
+  ).length;
 }
 
-// alt +n for adding task
 
-document.addEventListener("keydown", (e) => {
-  // Check if alt key is held AND N is pressed
-  if (e.altKey && e.key.toUpperCase() == "N") {
-    e.preventDefault(); // prevent default browser action (e.g., new window)
-    // Toggle or show your modal
-    quickAddModalBox.classList.remove("hidden");
-
-    handleOpenModalBox();
-  }
-});
-
-// addtask click
-
-addTaskBtn.addEventListener("click", () => {
-  // remove hidden to show the modal box
-  quickAddModalBox.classList.remove("hidden");
-
-  // CALL THE HANDEL MODEL BOX
-  handleOpenModalBox();
-});
-
+// add task form quick task section
 // function for quieck add task
 
 function handleQuickAddTaskSection() {
@@ -270,68 +242,95 @@ function handleQuickAddTaskSection() {
 
   function quickAddTask() {
     const taskValue = quickAddTaskInput.value.trim();
-    if (taskValue != "") {
-      const taskObject = {
+    if (taskValue) {
+      const quickTaskObject = {
         task: taskValue,
         id: Date.now(),
         isDone: false,
-        decreption: "",
+        description: "",
         priority: "medium",
         dueDate: "today",
-        catagory: "personal",
+        category: "personal",
+        isQuickTask: true
       };
-      taskArray.push(taskObject);
-      console.log(taskArray);
-
+      quickTasksArray.push(quickTaskObject);      
       quickAddTaskInput.value = "";
+      rednderStates();
     }
   }
 }
 
-handleQuickAddTaskSection();
+// function for open the taskmodalbox
 
-// add task from the model box
+// Cache modal elements globally
+const modalElements = {
+  taskModalBox: document.querySelector("#taskModalBox"),
+  modalContent: document.querySelector("#taskModal"),
+  closeModalBox: document.querySelector("#closeModalBox"),
+  cancleModalBtn: document.querySelector("#cancleModalBtn"),
+  addTaskModalBtn: document.querySelector("#addTaskModalBtn"),
+  taskTitle: document.querySelector("#taskTitle"),
+  taskDescription: document.querySelector("#taskDescription"),
+  taskPriority: document.querySelector("#taskPriority"),
+  taskDueDate: document.querySelector("#taskDueDate"),
+  taskCategory: document.querySelector("#taskCategory")
+};
 
-function handleAddTaskFromModalBox() {
-  // field that is need for make task object;
-  const modalBoxTaskInput = modalContent.querySelector("#taskTitle");
-  const taskDescriptionInput = modalContent.querySelector("#taskDescription");
-  const taskPriorityInput = modalContent.querySelector("#taskPriority");
-  const taskDueDateInput = modalContent.querySelector("#taskDueDate");
-  const taskCategoryInput = modalContent.querySelector("#taskCategory");
 
-  // vlaue of every filed
+// function for handle the opening of the modalbox for adding tasks
 
-  const taskValue = modalBoxTaskInput.value.trim();
-  const taskDescription = taskDescriptionInput.value.trim();
-  const taskPriority = taskPriorityInput.value;
-  const taskDueDate = taskDueDateInput.value;
-  const taskCategory = taskCategoryInput.value;
+function handleOpenModalBox() {
+  // open the modal box
+  modalElements.taskModalBox.classList.remove("hidden");
 
-  // make the object of task
+  // attche the all event of modal box
 
-  const taskObject = {
-    task: taskValue,
-    id: Date.now(),
-    isDone: false,
-    decreption: taskDescription,
-    priority: taskPriority,
-    dueDate: taskDueDate,
-    catagory: taskCategory,
-  };
+  // close 	quick modal btn
+  modalElements.taskModalBox.addEventListener("click", handleBackgroundClick);
+  modalElements.closeModalBox.addEventListener("click", closeModal);
+  modalElements.cancleModalBtn.addEventListener("click", closeModal);
 
-  tasksArray.push(taskObject);
-  console.log(tasksArray);
+  // also hendle data form the modal box
 
-  // claer the fieles
-  modalBoxTaskInput.value = "";
-  taskDescriptionInput.value = "";
-  taskPriorityInput.value = "";
-  taskCategoryInput.value = "";
+  addTaskModalBtn.addEventListener("click", (e) => {
+    handleAddTaskFromModalBox();
+  });
 
-  closeModal();
+  // function back groundclick handler
+
+  function handleBackgroundClick(e) {
+    if (!modalElements.modalContent.contains(e.target)) {
+      closeModal();
+    }
+  }
 }
 
+// function for close the modal
+function closeModal() {
+  taskModalBox.classList.add("hidden");
+  taskModalBox.removeEventListener("click", handleBackgroundClick);
+}
+
+// triggers for opining addtask modal box
+// open from alt +n for adding task
+
+document.addEventListener("keydown", (e) => {
+  // Check if alt key is held AND N is pressed
+  if (e.altKey && e.key.toUpperCase() == "N") {
+    e.preventDefault(); // prevent default browser action (e.g., new window)
+    // Toggle or show your modal
+    handleOpenModalBox();
+  }
+});
+
+// open from addTaskFloatingBtn click
+const addTaskFloatingBtn= document.querySelector("#addTaskFloatingBtn");
+addTaskFloatingBtn.addEventListener("click", () => {
+  // CALL THE HANDEL MODEL BOX
+  handleOpenModalBox();
+});
+
+// open from if tasklist container if zero task in array
 /// show the tasks if user have else show the ad task componet
 const todoListContainer = document.body.querySelector("#todoList-container");
 const addTaskBtnOfList = todoListContainer.querySelector("#taskAddBtnNotFound");
@@ -340,17 +339,50 @@ addTaskBtnOfList.addEventListener("click", () => {
   handleOpenModalBox();
 });
 
-// function for show the todos from the array
+
+
+// function for handle task add form modal box goes in task array;
+
+
+function handleAddTaskFromModalBox() {
+  const taskTitle = modalElements.taskTitle.value.trim();
+  const taskDescription = modalElements.taskDescription.value.trim();
+  const taskPriority = modalElements.taskPriority.value;
+  const taskDueDate = modalElements.taskDueDate.value;
+  const taskCategory = modalElements.taskCategory.value;
+
+  if (!taskTitle) return alert("Task title is required!");
+
+  const taskObject = {
+    task: taskTitle,
+    id: Date.now(),
+    isDone: false,
+    description: taskDescription,
+    priority: taskPriority,
+    dueDate: taskDueDate || new Date().toISOString().split("T")[0],
+    category: taskCategory,
+  };
+
+  tasksArray.push(taskObject);
+
+  // Clear form using cached elements
+  modalElements.taskTitle.value = "";
+  modalElements.taskDescription.value = "";
+  modalElements.taskPriority.value = "medium";
+  modalElements.taskCategory.value = "personal";
+
+  rednderStates();
+  closeModal();
+}
+
 
 // fucntion for redner the task
 
-function renderTask(taskArray, container) {
+function renderTask(taskObject, container) {
   container.firstElementChild.classList.add("hidden");
-
-  taskArray.forEach((taskObject) => {
-    // make the div of the task
-    const div = document.createElement("div");
-    div.innerHTML = `<div class="task-hover w-[95%] my-3 flex items-start gap-4 p-5 border border-gray-200 dark:border-gray-800 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-900 transition-all duration-200 opacity-60 animate-slide-up">
+  // make the div of the task
+  const div = document.createElement("div");
+  div.innerHTML = `<div class="task-hover w-[95%] my-3 flex items-start gap-4 p-5 border border-gray-200 dark:border-stone-500 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-900 transition-all duration-200 opacity-60 animate-slide-up">
                                 <button
                                     class="mt-1 w-5 h-5 rounded border-2 bg-black dark:bg-white border-black dark:border-white flex items-center justify-center transition-all duration-200 hover:border-gray-400 dark:hover:border-gray-500 hover:scale-110">
                                     <i data-lucide="check" class="w-3 h-3 text-white dark:text-black"></i>
@@ -403,38 +435,30 @@ function renderTask(taskArray, container) {
                                     </button>
                                 </div>
                      </div>`;
-                     container.appendChild(div);
-    });
+  container.appendChild(div);
 
-
+  /// to reflect the counter of tasks the task is add or delete
+  tasksCountAndRender();
 }
 
-renderTask(tasksArray,todoListContainer)
+// function for tasks count
 
-
-
-// function for render the stats 
-
-function rednderStates(){
-  const statsContainer=document.body.querySelector('#statics-container');
-  const totalTasks=statsContainer.querySelector('#totalTasks');
-  const completed=statsContainer.querySelector('#completedTasks');
-  const pending=statsContainer.querySelector('#pending');
-  completed.innerText=completedTasks();
-  pending.innerText=tasksArray.length-completedTasks();
-  totalTasks.innerText=tasksArray.length;
-
+function tasksCountAndRender() {
+  const taskcount = document.body.querySelector("#yourTaskCount");
+  taskcount.innerText = tasksArray.length;
 }
 
-// function for get count of completed tasks
-
-function completedTasks(){
-  const completedTasksCount=tasksArray.filter((taskObject)=>{
-    return taskObject.isDone==true;
-  })
-  return completedTasksCount.length;
+// function for renderAllTasks
+function renderAllTasks(tasksArray) {
+  tasksArray.forEach((taskObject) => {
+    renderTask(taskObject, todoListContainer);
+  });
 }
 
 // function to to see the over due;
 
+renderAllTasks(tasksArray);
 rednderStates();
+
+// run function handleQuickAddTaskSection after all
+handleQuickAddTaskSection();

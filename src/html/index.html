@@ -8,18 +8,42 @@
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 
     <link rel="stylesheet" href="../css/output.css">
-      <style>
+    <style>
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
+
         @keyframes slideUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
-        .animate-fade-in { animation: fadeIn 0.3s ease-out; }
-        .animate-slide-up { animation: slideUp 0.3s ease-out; }
-        .gradient-logo { background: linear-gradient(135deg, #6b7280, #9ca3af, #374151); }
+
+        .animate-fade-in {
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .animate-slide-up {
+            animation: slideUp 0.3s ease-out;
+        }
+
+        .gradient-logo {
+            background: linear-gradient(135deg, #6b7280, #9ca3af, #374151);
+        }
     </style>
 </head>
 
@@ -67,7 +91,7 @@
             <div id="statics-container"
                 class="grid md:grid-cols-4 md:grid-rows-1 grid-cols-2 grid-rows-2 gap-6  md:gap-2.5 w-full md:h-40 h-72">
                 <div
-                    class="dark:bg-slate-800 border border-sky-400 text-white rounded-lg   shadow-lg dark:shadow-amber-50/15 flex flex-col justify-center items-center">
+                    class="dark:bg-slate-800 bg-white border border-sky-400 text-white rounded-lg   shadow-lg dark:shadow-amber-50/15 flex flex-col justify-center items-center">
                     <div
                         class="w-10 h-10 bg-gradient-to-r from-neutral-500 via-neutral-300 to-neutral- rounded-lg flex items-center justify-center mx-auto mb-3">
                         <i data-lucide="list-checks" class="w-5 h-5 text-white"></i>
@@ -101,7 +125,7 @@
                         <i data-lucide="alert-circle" class="w-5 h-5 text-white"></i>
 
                     </div>
-                    <div class="text-2xl font-bold text-black dark:text-white" id="totalTasks">0</div>
+                    <div class="text-2xl font-bold text-black dark:text-white" id="overdue">0</div>
                     <div class="text-sm text-gray-600 dark:text-gray-400">Overdue</div>
                 </div>
             </div>
@@ -197,7 +221,7 @@
                             </div>
                             <div class="flex gap-3 dark:text-neutral-200 items-center">
                                 <p class="font-bold">Your Tasks</p>
-                                <span id="count"
+                                <span id="yourTaskCount"
                                     class=" text-sm  rounded-full w-8 h-8 flex items-center justify-center p-2 bg-slate-500">10</span>
                             </div>
                         </div>
@@ -222,14 +246,13 @@
                             </div>
                             <p class="dark:text-slate-100 font-bold text-2xl mt-5">No Tasks Found</p>
                             <p class="dark:text-slate-500  text-md ">Add your first task to get started</p>
-                            <div
-                                id="taskAddBtnNotFound"
+                            <div id="taskAddBtnNotFound"
                                 class=" flex  items-center mt-3 rounded-xl py-2  cursor-pointer bg-white shadow-md px-10">
                                 <i data-lucide="plus" class="w-4 h-4"></i>
                                 <span>Add Task</span>
                             </div>
                         </div>
- 
+
 
                     </div>
 
@@ -242,9 +265,9 @@
 
         <!--------------------todo add box modal ------------------>
 
-        <div id="quickAddModal"
+        <div id="taskModalBox"
             class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden w-full flex items-center justify-center z-50 p-4">
-            <div id="quickModal"
+            <div id="taskModal"
                 class="bg-white dark:bg-black rounded-xl border border-gray-200 dark:border-gray-800 w-full max-w-md animate-fade-in">
                 <div class="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-800">
                     <div class="flex items-center gap-3">
@@ -253,7 +276,7 @@
                         </div>
                         <h3 class="text-lg font-semibold text-black dark:text-white">Add New Task</h3>
                     </div>
-                    <button id="closeQuickModal"
+                    <button id="closeModalBox"
                         class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-900 transition-colors">
                         <i data-lucide="x" class="w-4 h-4 text-gray-500"></i>
                     </button>
@@ -302,12 +325,12 @@
 
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Due Date</label>
-                        <input type="datetime-local" id="taskDueDate"
+                        <input type="date" id="taskDueDate"
                             class="w-full px-4 py-3 border border-gray-200 dark:border-gray-800 rounded-lg bg-white dark:bg-black text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white focus:border-transparent transition-all duration-200">
                     </div>
 
                     <div class="flex gap-3 pt-4">
-                        <button type="button" id="cancelQuick"
+                        <button type="button" id="cancleModalBtn"
                             class="flex-1 px-4 py-3 border border-gray-200 dark:border-gray-800 text-gray-700 dark:text-gray-300 font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-gray-900 transition-all duration-200">
                             Cancel
                         </button>
@@ -407,7 +430,7 @@
 
 
         <!-- ------------------btn for add task------------------- -->
-        <button id="addTask"
+        <button id="addTaskFloatingBtn"
             class="fixed cursor-pointer right-5 bottom-10 w-16 h-16 bg-slate-100  flex items-center justify-center rounded-full">
             <i data-lucide="plus" class="w-5 h-5 "></i>
         </button>
