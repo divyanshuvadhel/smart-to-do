@@ -255,6 +255,7 @@ function handleQuickAddTaskSection() {
       };
       quickTasksArray.push(quickTaskObject);      
       quickAddTaskInput.value = "";
+      renderAllTasksSorted();
       rednderStates();
     }
   }
@@ -307,8 +308,8 @@ function handleOpenModalBox() {
 
 // function for close the modal
 function closeModal() {
-  taskModalBox.classList.add("hidden");
-  taskModalBox.removeEventListener("click", handleBackgroundClick);
+  modalElements.taskModalBox.classList.add("hidden");
+  modalElements.taskModalBox.removeEventListener("click", handleBackgroundClick);
 }
 
 // triggers for opining addtask modal box
@@ -350,54 +351,100 @@ function handleAddTaskFromModalBox() {
   const taskPriority = modalElements.taskPriority.value;
   const taskDueDate = modalElements.taskDueDate.value;
   const taskCategory = modalElements.taskCategory.value;
+  const editId = modalElements.addTaskModalBtn.getAttribute('data-edit-id');
 
   if (!taskTitle) return alert("Task title is required!");
 
-  const taskObject = {
-    task: taskTitle,
-    id: Date.now(),
-    isDone: false,
-    description: taskDescription,
-    priority: taskPriority,
-    dueDate: taskDueDate || new Date().toISOString().split("T")[0],
-    category: taskCategory,
-  };
+  if (editId) {
+    // Edit existing task
+    let taskIndex = tasksArray.findIndex(task => task.id == editId);
+    let isQuickTask = false;
+    
+    if (taskIndex === -1) {
+      taskIndex = quickTasksArray.findIndex(task => task.id == editId);
+      isQuickTask = true;
+    }
+    
+    if (taskIndex !== -1) {
+      const targetArray = isQuickTask ? quickTasksArray : tasksArray;
+      targetArray[taskIndex] = {
+        ...targetArray[taskIndex],
+        task: taskTitle,
+        description: taskDescription,
+        priority: taskPriority,
+        dueDate: taskDueDate || new Date().toISOString().split("T")[0],
+        category: taskCategory
+      };
+    }
+    
+    // Reset modal button
+    modalElements.addTaskModalBtn.textContent = 'Add Task';
+    modalElements.addTaskModalBtn.removeAttribute('data-edit-id');
+  } else {
+    // Add new task
+    const taskObject = {
+      task: taskTitle,
+      id: Date.now(),
+      isDone: false,
+      description: taskDescription,
+      priority: taskPriority,
+      dueDate: taskDueDate || new Date().toISOString().split("T")[0],
+      category: taskCategory,
+    };
+    tasksArray.push(taskObject);
+  }
 
-  tasksArray.push(taskObject);
-
-  // Clear form using cached elements
+  // Clear form
   modalElements.taskTitle.value = "";
   modalElements.taskDescription.value = "";
   modalElements.taskPriority.value = "medium";
   modalElements.taskCategory.value = "personal";
 
+  renderAllTasksSorted();
   rednderStates();
   closeModal();
 }
 
 
-// fucntion for redner the task
+// function for render the task with proper priority and completion states
 
-function renderTask(taskObject, container) {
-  container.firstElementChild.classList.add("hidden");
-  // make the div of the task
+function renderTask(taskObject) {
+  const priorityColors = {
+    high: 'bg-red-500',
+    medium: 'bg-yellow-500', 
+    low: 'bg-green-500'
+  };
+  
+  const completionClasses = taskObject.isDone 
+    ? 'opacity-60 line-through' 
+    : 'opacity-100';
+    
+  const checkboxClasses = taskObject.isDone
+    ? 'bg-green-500 border-green-500'
+    : 'bg-transparent border-gray-300 dark:border-gray-600';
+    
+  const checkIcon = taskObject.isDone ? 'check' : '';
+
   const div = document.createElement("div");
-  div.innerHTML = `<div class="task-hover w-[95%] my-3 flex items-start gap-4 p-5 border border-gray-200 dark:border-stone-500 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-900 transition-all duration-200 opacity-60 animate-slide-up">
+  div.innerHTML = `<div
+                      id="task-${taskObject.id}" 
+                      class="task-item w-[95%] my-3 flex items-start gap-4 p-5 border border-gray-200 dark:border-stone-500 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-900 transition-all duration-300 ${completionClasses} animate-slide-up">
                                 <button
-                                    class="mt-1 w-5 h-5 rounded border-2 bg-black dark:bg-white border-black dark:border-white flex items-center justify-center transition-all duration-200 hover:border-gray-400 dark:hover:border-gray-500 hover:scale-110">
-                                    <i data-lucide="check" class="w-3 h-3 text-white dark:text-black"></i>
+                                    onclick="handleTaskDone(${taskObject.id})"
+                                    class="task-checkbox mt-1 w-5 h-5 rounded border-2 ${checkboxClasses} flex items-center justify-center transition-all duration-200 hover:scale-110">
+                                    ${taskObject.isDone ? '<i data-lucide="check" class="w-3 h-3 text-white"></i>' : ''}
                                 </button>
 
                                 <div class="flex-1 min-w-0">
                                     <div class="flex items-center gap-3 mb-2">
-                                        <div class="w-2 h-2 rounded-full bg-yellow-500"></div>
-                                         <h3 class="font-semibold text-black dark:text-white line-through">
+                                        <div class="w-2 h-2 rounded-full ${priorityColors[taskObject.priority]}"></div>
+                                         <h3 class="font-semibold text-black dark:text-white ${taskObject.isDone ? 'line-through' : ''}">
                                             ${taskObject.task}
                                          </h3>
                                         <span
                                             class="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400">
                                             <i data-lucide="home" class="w-3 h-3"></i>
-                                            ${taskObject.catagory}
+                                            ${taskObject.category || taskObject.catagory || 'personal'}
                                         </span>
                                         <span
                                             class="px-2 py-1 rounded-md text-xs bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400">
@@ -405,8 +452,8 @@ function renderTask(taskObject, container) {
                                         </span>
                                     </div>
 
-                                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-3 line-through">
-                                      ${taskObject.decreption}  
+                                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-3 ${taskObject.isDone ? 'line-through' : ''}">
+                                      ${taskObject.description || taskObject.decreption || ''}  
                                     </p>
 
                                     <div class="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
@@ -414,32 +461,121 @@ function renderTask(taskObject, container) {
                                             <i data-lucide="calendar" class="w-3 h-3"></i>
                                             ${taskObject.dueDate}
                                         </span>
-                                        <span class="flex items-center gap-1">
-                                            <i data-lucide="clock" class="w-3 h-3"></i>
-                                            ${taskObject.dueDate}
-                                            
-                                        </span>
                                     </div>
                                 </div>
 
                                 <div class="flex items-center gap-1">
                                     <button
-                                        class="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white transition-all duration-200 hover:scale-110"
+                                        onclick="handleTaskEdit(${taskObject.id})"
+                                        class="edit-btn p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white transition-all duration-200 hover:scale-110"
                                         title="Edit task">
                                         <i data-lucide="edit" class="w-4 h-4"></i>
                                     </button>
                                     <button
-                                        class="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white transition-all duration-200 hover:scale-110"
+                                        onclick="handleTaskDelete(${taskObject.id})"
+                                        class="delete-btn p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 hover:text-red-500 transition-all duration-200 hover:scale-110"
                                         title="Delete task">
                                         <i data-lucide="trash-2" class="w-4 h-4"></i>
                                     </button>
                                 </div>
                      </div>`;
-  container.appendChild(div);
-
-  /// to reflect the counter of tasks the task is add or delete
-  tasksCountAndRender();
+  todoListContainer.appendChild(div);
 }
+
+
+// function for handle task done with animation
+
+function handleTaskDone(taskId) {
+  const allTasks = [...tasksArray, ...quickTasksArray];
+  let taskIndex = tasksArray.findIndex((task) => task.id == taskId);
+  let isQuickTask = false;
+  
+  if (taskIndex === -1) {
+    taskIndex = quickTasksArray.findIndex((task) => task.id == taskId);
+    isQuickTask = true;
+  }
+  
+  if (taskIndex !== -1) {
+    const targetArray = isQuickTask ? quickTasksArray : tasksArray;
+    targetArray[taskIndex].isDone = !targetArray[taskIndex].isDone;
+    
+    // Add fade animation for completed tasks
+    const taskElement = document.getElementById(`task-${taskId}`);
+    if (taskElement) {
+      if (targetArray[taskIndex].isDone) {
+        taskElement.style.transition = 'all 0.3s ease';
+        taskElement.style.opacity = '0.6';
+        taskElement.classList.add('line-through');
+      } else {
+        taskElement.style.opacity = '1';
+        taskElement.classList.remove('line-through');
+      }
+    }
+    
+    renderAllTasksSorted();
+    rednderStates();
+  }
+}
+
+// function for handle task delete with confirmation
+
+function handleTaskDelete(taskId) {
+  if (confirm('Are you sure you want to delete this task?')) {
+    let taskIndex = tasksArray.findIndex((task) => task.id == taskId);
+    let isQuickTask = false;
+    
+    if (taskIndex === -1) {
+      taskIndex = quickTasksArray.findIndex((task) => task.id == taskId);
+      isQuickTask = true;
+    }
+    
+    if (taskIndex !== -1) {
+      const targetArray = isQuickTask ? quickTasksArray : tasksArray;
+      const taskElement = document.getElementById(`task-${taskId}`);
+      
+      // Add slide-out animation
+      if (taskElement) {
+        taskElement.style.transition = 'all 0.3s ease';
+        taskElement.style.transform = 'translateX(100%)';
+        taskElement.style.opacity = '0';
+        
+        setTimeout(() => {
+          targetArray.splice(taskIndex, 1);
+          renderAllTasksSorted();
+          rednderStates();
+        }, 300);
+      } else {
+        targetArray.splice(taskIndex, 1);
+        renderAllTasksSorted();
+        rednderStates();
+      }
+    }
+  }
+}
+
+// function for handle task edit
+function handleTaskEdit(taskId) {
+  const allTasks = [...tasksArray, ...quickTasksArray];
+  const task = allTasks.find(t => t.id == taskId);
+  
+  if (task) {
+    // Populate modal with existing task data
+    modalElements.taskTitle.value = task.task;
+    modalElements.taskDescription.value = task.description || task.decreption || '';
+    modalElements.taskPriority.value = task.priority;
+    modalElements.taskDueDate.value = task.dueDate === 'today' ? new Date().toISOString().split('T')[0] : task.dueDate;
+    modalElements.taskCategory.value = task.category || task.catagory || 'personal';
+    
+    // Change modal button text and add edit mode
+    modalElements.addTaskModalBtn.textContent = 'Update Task';
+    modalElements.addTaskModalBtn.setAttribute('data-edit-id', taskId);
+    
+    handleOpenModalBox();
+  }
+}
+
+
+
 
 // function for tasks count
 
@@ -448,17 +584,53 @@ function tasksCountAndRender() {
   taskcount.innerText = tasksArray.length;
 }
 
-// function for renderAllTasks
-function renderAllTasks(tasksArray) {
-  tasksArray.forEach((taskObject) => {
-    renderTask(taskObject, todoListContainer);
+// function for render all tasks sorted by priority and due date
+function renderAllTasksSorted() {
+  // Clear existing tasks
+  const existingTasks = todoListContainer.querySelectorAll('.task-item');
+  existingTasks.forEach(task => task.remove());
+  
+  const allTasks = [...tasksArray, ...quickTasksArray];
+  
+  if (allTasks.length === 0) {
+    todoListContainer.firstElementChild.classList.remove("hidden");
+    return;
+  }
+  
+  todoListContainer.firstElementChild.classList.add("hidden");
+  
+  // Sort tasks: incomplete first, then by priority (high->medium->low), then by due date
+  const priorityOrder = { high: 3, medium: 2, low: 1 };
+  
+  const sortedTasks = allTasks.sort((a, b) => {
+    // Completed tasks go to bottom
+    if (a.isDone !== b.isDone) {
+      return a.isDone ? 1 : -1;
+    }
+    
+    // Sort by priority (high to low)
+    if (a.priority !== b.priority) {
+      return priorityOrder[b.priority] - priorityOrder[a.priority];
+    }
+    
+    // Sort by due date (earliest first)
+    const dateA = a.dueDate === 'today' ? new Date().toISOString().split('T')[0] : a.dueDate;
+    const dateB = b.dueDate === 'today' ? new Date().toISOString().split('T')[0] : b.dueDate;
+    
+    return new Date(dateA) - new Date(dateB);
   });
+  
+  sortedTasks.forEach((taskObject) => {
+    renderTask(taskObject);
+  });
+  
+  // Reinitialize Lucide icons
+  if (typeof lucide !== 'undefined') {
+    lucide.createIcons();
+  }
 }
 
-// function to to see the over due;
-
-renderAllTasks(tasksArray);
+// Initialize the app
+renderAllTasksSorted();
 rednderStates();
-
-// run function handleQuickAddTaskSection after all
 handleQuickAddTaskSection();
